@@ -32,7 +32,19 @@ export class NsisUpdater extends BaseUpdater {
         const packageInfo = fileInfo.packageInfo
         const isWebInstaller = packageInfo != null && packageFile != null
         if (isWebInstaller || await this.differentialDownloadInstaller(fileInfo, downloadUpdateOptions, destinationFile, provider)) {
-          await this.httpExecutor.download(fileInfo.url, destinationFile, downloadOptions)
+          try {
+            await this.httpExecutor.download(fileInfo.url, destinationFile, downloadOptions)
+          }
+          catch (e) {
+            try {
+              await unlink(packageFile!!)
+            }
+            catch (ignored) {
+              // ignore
+            }
+
+            throw e
+          }
         }
 
         const signatureVerificationStatus = await this.verifySignature(destinationFile)
